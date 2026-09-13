@@ -25,24 +25,24 @@ Trợ lý AI tư vấn khoản vay và đặt lịch chuyên viên ngân hàng
 Dán 1 đoạn trích xuất log tiêu biểu từ file `docs/trace_waterfall.json` sinh ra từ phản hồi LLM API thật:
 
 ```json
-[
-  {
-    "step": 1,
-    "action_type": "TOOL_EXECUTION",
-    "tool_name": "academic_query",
-    "arguments": {
-      "student_id": "SV2026001"
-    },
-    "observation": {
-      "status": "SUCCESS",
-      "student_id": "SV2026001",
-      "data": {
-        "full_name": "Nguyễn Văn An",
-        "gpa": 3.85
-      }
-    },
-    "latency_ms": 120.5
-  }
+// [
+//   {
+//     "step": 1,
+//     "action_type": "TOOL_EXECUTION",
+//     "tool_name": "academic_query",
+//     "arguments": {
+//       "student_id": "SV2026001"
+//     },
+//     "observation": {
+//       "status": "SUCCESS",
+//       "student_id": "SV2026001",
+//       "data": {
+//         "full_name": "Nguyễn Văn An",
+//         "gpa": 3.85
+//       }
+//     },
+//     "latency_ms": 120.5
+//   }
 ]
 ```
 
