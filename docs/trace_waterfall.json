@@ -1,13 +1,47 @@
 [
   {
     "step": 1,
-    "query": "Tôi muốn vay 500 triệu mua ô tô, thu nhập 25 triệu/tháng. Hãy tìm sản phẩm phù hợp. Nếu đáp ứng điều kiện sơ bộ thì đặt lịch tư vấn cho tôi lúc 15:00 ngày 21/09/2026. Tôi tên Nguyễn Văn An, số điện thoại 0901234567.",
+    "query": "Chào bạn, bạn có thể giới thiệu các loại khoản vay phổ biến của ngân hàng không?",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "loan_information_lookup",
+    "arguments": {
+      "loan_type": "personal_loan"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "loan_type": "personal_loan",
+      "data": {
+        "product_code": "PERSONAL001",
+        "product_name": "Vay tiêu dùng tín chấp",
+        "interest_rate": "12.0%/năm",
+        "max_loan_amount": 500000000,
+        "max_term_months": 60,
+        "min_monthly_income": 10000000,
+        "required_documents": [
+          "CCCD",
+          "Chứng minh thu nhập"
+        ]
+      },
+      "preliminary_eligibility": "NOT_ASSESSED"
+    },
+    "latency_ms": 2.43
+  },
+  {
+    "step": 2,
+    "query": "Chào bạn, bạn có thể giới thiệu các loại khoản vay phổ biến của ngân hàng không?",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Observation đã cung cấp đủ thông tin sản phẩm vay. Không cần gọi thêm Tool.",
+    "output": "[Mock Agent Response]: Đã tra cứu sản phẩm vay thành công. Tôi sẽ sử dụng chính xác thông tin từ Observation để tư vấn cho khách hàng.",
+    "latency_ms": 0.0
+  },
+  {
+    "step": 1,
+    "query": "Tôi muốn vay 500 triệu đồng để mua ô tô và thu nhập hàng tháng của tôi là 25 triệu đồng. Hãy tra cứu sản phẩm vay phù hợp.",
     "action_type": "TOOL_EXECUTION",
     "tool_name": "loan_information_lookup",
     "arguments": {
       "loan_type": "car_loan",
-      "loan_amount": 500000000,
-      "monthly_income": 25000000
+      "loan_amount": 500000000
     },
     "observation": {
       "status": "SUCCESS",
@@ -27,15 +61,111 @@
       },
       "requested_loan_amount": 500000000,
       "loan_amount_check": "ELIGIBLE",
-      "monthly_income": 25000000,
-      "income_check": "ELIGIBLE",
+      "preliminary_eligibility": "ELIGIBLE"
+    },
+    "latency_ms": 1.23
+  },
+  {
+    "step": 2,
+    "query": "Tôi muốn vay 500 triệu đồng để mua ô tô và thu nhập hàng tháng của tôi là 25 triệu đồng. Hãy tra cứu sản phẩm vay phù hợp.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Observation đã cung cấp đủ thông tin sản phẩm vay. Không cần gọi thêm Tool.",
+    "output": "[Mock Agent Response]: Đã tra cứu sản phẩm vay thành công. Tôi sẽ sử dụng chính xác thông tin từ Observation để tư vấn cho khách hàng.",
+    "latency_ms": 0.0
+  },
+  {
+    "step": 1,
+    "query": "Tôi tên Nguyễn Văn An, số điện thoại 0901234567. Hãy đặt lịch tư vấn vay mua ô tô cho tôi vào lúc 14:00 ngày 20/09/2026.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "loan_information_lookup",
+    "arguments": {
+      "loan_type": "car_loan"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "loan_type": "car_loan",
+      "data": {
+        "product_code": "CAR001",
+        "product_name": "Vay mua ô tô cá nhân",
+        "interest_rate": "8.5%/năm",
+        "max_loan_amount": 2000000000,
+        "max_term_months": 84,
+        "min_monthly_income": 15000000,
+        "required_documents": [
+          "CCCD",
+          "Chứng minh thu nhập",
+          "Hợp đồng mua bán xe"
+        ]
+      },
+      "preliminary_eligibility": "NOT_ASSESSED"
+    },
+    "latency_ms": 0.0
+  },
+  {
+    "step": 2,
+    "query": "Tôi tên Nguyễn Văn An, số điện thoại 0901234567. Hãy đặt lịch tư vấn vay mua ô tô cho tôi vào lúc 14:00 ngày 20/09/2026.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "loan_consultation_booking",
+    "arguments": {
+      "customer_name": "Nguyễn Văn An",
+      "phone_number": "0901234567",
+      "datetime_str": "14:00 20/09/2026",
+      "loan_type": "car_loan"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "booking_id": "LOAN-BK-4567-140020092026",
+      "customer_name": "Nguyễn Văn An",
+      "phone_number": "0901234567",
+      "loan_type": "car_loan",
+      "datetime": "14:00 20/09/2026",
+      "advisor": "Chuyên viên tín dụng 01",
+      "message": "Đặt lịch thành công cho khách hàng Nguyễn Văn An tư vấn car_loan vào lúc 14:00 20/09/2026."
+    },
+    "latency_ms": 0.0
+  },
+  {
+    "step": 3,
+    "query": "Tôi tên Nguyễn Văn An, số điện thoại 0901234567. Hãy đặt lịch tư vấn vay mua ô tô cho tôi vào lúc 14:00 ngày 20/09/2026.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Observation xác nhận việc đặt lịch thành công. Đã đủ thông tin để đưa ra Final Answer.",
+    "output": "[Mock Agent Response]: Lịch tư vấn khoản vay đã được đặt thành công. Thông tin chi tiết được lấy từ kết quả của hệ thống.",
+    "latency_ms": 0.0
+  },
+  {
+    "step": 1,
+    "query": "Tôi muốn vay 500 triệu đồng để mua ô tô, thu nhập hàng tháng của tôi là 25 triệu đồng. Hãy tìm sản phẩm vay phù hợp. Nếu tôi đáp ứng điều kiện sơ bộ thì đặt lịch tư vấn cho tôi vào lúc 15:00 ngày 21/09/2026. Tôi tên Nguyễn Văn An, số điện thoại 0901234567.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "loan_information_lookup",
+    "arguments": {
+      "loan_type": "car_loan",
+      "loan_amount": 500000000
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "loan_type": "car_loan",
+      "data": {
+        "product_code": "CAR001",
+        "product_name": "Vay mua ô tô cá nhân",
+        "interest_rate": "8.5%/năm",
+        "max_loan_amount": 2000000000,
+        "max_term_months": 84,
+        "min_monthly_income": 15000000,
+        "required_documents": [
+          "CCCD",
+          "Chứng minh thu nhập",
+          "Hợp đồng mua bán xe"
+        ]
+      },
+      "requested_loan_amount": 500000000,
+      "loan_amount_check": "ELIGIBLE",
       "preliminary_eligibility": "ELIGIBLE"
     },
     "latency_ms": 0.0
   },
   {
     "step": 2,
-    "query": "Tôi muốn vay 500 triệu mua ô tô, thu nhập 25 triệu/tháng. Hãy tìm sản phẩm phù hợp. Nếu đáp ứng điều kiện sơ bộ thì đặt lịch tư vấn cho tôi lúc 15:00 ngày 21/09/2026. Tôi tên Nguyễn Văn An, số điện thoại 0901234567.",
+    "query": "Tôi muốn vay 500 triệu đồng để mua ô tô, thu nhập hàng tháng của tôi là 25 triệu đồng. Hãy tìm sản phẩm vay phù hợp. Nếu tôi đáp ứng điều kiện sơ bộ thì đặt lịch tư vấn cho tôi vào lúc 15:00 ngày 21/09/2026. Tôi tên Nguyễn Văn An, số điện thoại 0901234567.",
     "action_type": "TOOL_EXECUTION",
     "tool_name": "loan_consultation_booking",
     "arguments": {
@@ -58,10 +188,33 @@
   },
   {
     "step": 3,
-    "query": "Tôi muốn vay 500 triệu mua ô tô, thu nhập 25 triệu/tháng. Hãy tìm sản phẩm phù hợp. Nếu đáp ứng điều kiện sơ bộ thì đặt lịch tư vấn cho tôi lúc 15:00 ngày 21/09/2026. Tôi tên Nguyễn Văn An, số điện thoại 0901234567.",
+    "query": "Tôi muốn vay 500 triệu đồng để mua ô tô, thu nhập hàng tháng của tôi là 25 triệu đồng. Hãy tìm sản phẩm vay phù hợp. Nếu tôi đáp ứng điều kiện sơ bộ thì đặt lịch tư vấn cho tôi vào lúc 15:00 ngày 21/09/2026. Tôi tên Nguyễn Văn An, số điện thoại 0901234567.",
     "action_type": "FINAL_ANSWER",
     "thought": "Observation xác nhận việc đặt lịch thành công. Đã đủ thông tin để đưa ra Final Answer.",
     "output": "[Mock Agent Response]: Lịch tư vấn khoản vay đã được đặt thành công. Thông tin chi tiết được lấy từ kết quả của hệ thống.",
+    "latency_ms": 0.0
+  },
+  {
+    "step": 1,
+    "query": "Hãy tra cứu sản phẩm vay loại education_loan trong hệ thống.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "loan_information_lookup",
+    "arguments": {
+      "loan_type": "education_loan"
+    },
+    "observation": {
+      "status": "NOT_FOUND",
+      "loan_type": "education_loan",
+      "message": "Không tìm thấy sản phẩm vay loại 'education_loan'."
+    },
+    "latency_ms": 0.98
+  },
+  {
+    "step": 2,
+    "query": "Hãy tra cứu sản phẩm vay loại education_loan trong hệ thống.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Tool trả về NOT_FOUND nên phải thông báo chính xác và không được bịa dữ liệu.",
+    "output": "[Mock Agent Response]: Không tìm thấy sản phẩm vay phù hợp trong hệ thống. Tôi không tự tạo lãi suất, hạn mức hoặc thông tin sản phẩm.",
     "latency_ms": 0.0
   }
 ]
