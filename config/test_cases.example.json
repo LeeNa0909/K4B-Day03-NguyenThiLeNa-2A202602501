@@ -2,37 +2,36 @@
   {
     "id": "TC01",
     "type": "direct_query",
-    "question": "Chào bạn, bạn có thể giới thiệu quy chế học vụ cơ bản của Đại học VinUni không?",
-    "expected_behavior": "Chatbot trả lời trực tiếp từ System Prompt, không cần gọi bất kỳ Tool nào.",
+    "question": "Chào bạn, bạn có thể giới thiệu các loại khoản vay phổ biến của ngân hàng không?",
+    "expected_behavior": "Chatbot trả lời trực tiếp bằng kiến thức chung về các loại khoản vay phổ biến như vay mua ô tô, vay mua nhà và vay tiêu dùng cá nhân; không cần gọi bất kỳ Tool nào.",
     "complexity": "Low"
   },
   {
     "id": "TC02",
     "type": "single_tool_query",
-    "question": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
-    "expected_behavior": "Agent nhận diện nhu cầu tra cứu, tự động phát sinh Tool Call 'academic_query' với mã SV2026001.",
+    "question": "Tôi muốn vay 500 triệu đồng để mua ô tô và thu nhập hàng tháng của tôi là 25 triệu đồng. Hãy tra cứu sản phẩm vay phù hợp.",
+    "expected_behavior": "Agent nhận diện nhu cầu tra cứu khoản vay mua ô tô và tự động phát sinh Tool Call 'loan_information_lookup' với loan_type='car_loan', loan_amount=500000000 và monthly_income=25000000. Sau khi nhận Observation, Agent tổng hợp kết quả và trả lời khách hàng.",
     "complexity": "Medium"
   },
   {
     "id": "TC03",
     "type": "appointment_booking",
-    "question": "Tôi muốn vay khoảng 500 triệu để mua ô tô. Hãy tìm gói vay phù hợp cho tôi, sau đó nếu có gói vay phù hợp thì đặt lịch tư vấn với chuyên viên vào lúc 15:00 ngày 21/09/2026.",
-  "expected_behavior": "Agent thực hiện chuỗi suy luận ReAct đa bước: trước tiên gọi Tool 'loan_information_lookup' để tra cứu gói vay phù hợp; dựa trên kết quả trả về, nếu tìm thấy gói vay phù hợp thì tiếp tục gọi Tool 'loan_consultation_booking' để đặt lịch tư vấn với chuyên viên.",
-
-    "complexity": "High"
+    "question": "Tôi tên Nguyễn Văn An, số điện thoại 0901234567. Hãy đặt lịch tư vấn vay mua ô tô cho tôi vào lúc 14:00 ngày 20/09/2026.",
+    "expected_behavior": "Agent tự động phát sinh Tool Call 'loan_consultation_booking' với customer_name='Nguyễn Văn An', phone_number='0901234567', datetime_str='14:00 20/09/2026' và loan_type='car_loan'. Sau khi Tool trả về SUCCESS, Agent thông báo kết quả đặt lịch cho khách hàng.",
+    "complexity": "Medium"
   },
   {
     "id": "TC04",
     "type": "multi_step_reasoning",
-    "question": "Tôi muốn đặt lịch tư vấn khoản vay mua ô tô với chuyên viên ngân hàng vào lúc 14:00 ngày 20/09/2026. Tôi tên là Nguyễn Thị Lê Na, số điện thoại 0901234567.",
-    "expected_behavior": "Agent tự động phát sinh Tool Call 'loan_consultation_booking' với đúng thời gian, loại nhu cầu vay và thông tin khách hàng.",
-    "complexity": "Medium"
+    "question": "Tôi muốn vay 500 triệu đồng để mua ô tô, thu nhập hàng tháng của tôi là 25 triệu đồng. Hãy tìm sản phẩm vay phù hợp. Nếu tôi đáp ứng điều kiện sơ bộ thì đặt lịch tư vấn cho tôi vào lúc 15:00 ngày 21/09/2026. Tôi tên Nguyễn Văn An, số điện thoại 0901234567.",
+    "expected_behavior": "Agent thực hiện chuỗi suy luận ReAct đa bước: đầu tiên gọi Tool 'loan_information_lookup' với loan_type='car_loan', loan_amount=500000000 và monthly_income=25000000; đọc Observation và kiểm tra preliminary_eligibility; nếu kết quả là ELIGIBLE thì tiếp tục gọi Tool 'loan_consultation_booking' với đầy đủ thông tin khách hàng; sau khi nhận kết quả đặt lịch mới đưa ra Final Answer.",
+    "complexity": "High"
   },
   {
     "id": "TC05",
     "type": "edge_case_handling",
-    "question": "Hãy tra cứu thông tin sản phẩm vay có mã LOAN-001.",
-    "expected_behavior": "Agent gọi Tool 'loan_information_lookup', nhận kết quả NOT_FOUND và phản hồi lịch sự rằng không tìm thấy sản phẩm vay tương ứng, không tự bịa ra lãi suất, điều kiện hoặc thông tin sản phẩm.",
+    "question": "Hãy tra cứu sản phẩm vay loại education_loan trong hệ thống.",
+    "expected_behavior": "Agent gọi Tool 'loan_information_lookup' với loan_type='education_loan', nhận kết quả NOT_FOUND và phản hồi rằng không tìm thấy sản phẩm vay tương ứng. Agent không được tự bịa lãi suất, hạn mức, kỳ hạn, điều kiện vay hoặc thông tin sản phẩm thay thế.",
     "complexity": "Medium"
   }
 ]
