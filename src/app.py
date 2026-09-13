@@ -1,6 +1,15 @@
 """
-🚀 CORE AGENT APPLICATION (DAY 03: CHATBOT VS REACT AGENT)
-Thực thi so sánh giữa Chatbot Baseline (Cấp 2) và ReAct Agent kết nối MCP Server (Cấp 3).
+🚀 CORE AGENT APPLICATION
+
+Đề tài:
+TRỢ LÝ AI TƯ VẤN KHOẢN VAY NGÂN HÀNG
+
+So sánh:
+- Chatbot Baseline (không có Tool)
+- ReAct Agent kết nối MCP Server
+
+ReAct Flow:
+Thought -> Action -> Observation -> Thought -> ... -> Final Answer
 """
 
 import json
@@ -15,11 +24,17 @@ from dotenv import load_dotenv
 # PATH / ENCODING SETUP
 # ==============================================================================
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(
+    os.path.dirname(
+        os.path.abspath(__file__)
+    )
+)
 
 if sys.stdout.encoding != "utf-8":
     try:
-        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stdout.reconfigure(
+            encoding="utf-8"
+        )
     except Exception:
         pass
 
@@ -28,9 +43,7 @@ if sys.stdout.encoding != "utf-8":
 # IMPORT PROJECT MODULES
 # ==============================================================================
 
-# Nếu class trong mcp_server.py của bạn vẫn đang tên MCPAcademicServer
-# thì giữ nguyên import này.
-from mcp_server import MCPAcademicServer
+from mcp_server import MCPBankingServer
 
 from prompts import (
     CHATBOT_BASELINE_PROMPT,
@@ -41,7 +54,10 @@ from prompts import (
 from providers import get_llm_provider
 
 
-# Load environment variables từ .env
+# ==============================================================================
+# LOAD ENVIRONMENT VARIABLES
+# ==============================================================================
+
 load_dotenv()
 
 
@@ -51,10 +67,12 @@ load_dotenv()
 
 def load_test_cases():
     """
-    Tải danh sách test cases từ:
+    Tải danh sách Test Cases từ:
+
     config/test_cases.json
 
-    Nếu chưa tồn tại thì dùng:
+    Nếu chưa tồn tại thì sử dụng:
+
     config/test_cases.example.json
     """
 
@@ -93,12 +111,14 @@ def load_test_cases():
             print(
                 "👉 Hãy copy file mẫu thành "
                 "'config/test_cases.json' "
-                "và chỉnh sửa theo đề tài ngân hàng.\n"
+                "và chỉnh sửa theo đề tài "
+                "tư vấn khoản vay ngân hàng.\n"
             )
 
             config_path = example_path
 
         else:
+
             config_path = "test_cases.json"
 
     with open(
@@ -106,6 +126,7 @@ def load_test_cases():
         "r",
         encoding="utf-8"
     ) as f:
+
         return json.load(f)
 
 
@@ -115,7 +136,8 @@ def load_test_cases():
 
 def save_waterfall_trace(trace_data: list):
     """
-    Ghi Waterfall Trace Log ra:
+    Ghi Waterfall Trace Log ra file:
+
     docs/trace_waterfall.json
     """
 
@@ -170,7 +192,11 @@ def run_baseline_chatbot(
 ):
     """
     Chatbot Baseline:
-    Không có quyền sử dụng Tool.
+
+    - Chỉ sử dụng LLM.
+    - Không có quyền gọi Tool.
+    - Không truy cập dữ liệu khoản vay thời gian thực.
+    - Không thể đặt lịch tư vấn.
     """
 
     print(
@@ -196,13 +222,12 @@ def run_baseline_chatbot(
 def run_react_agent(
     user_query: str,
     provider,
-    mcp_server: MCPAcademicServer
+    mcp_server: MCPBankingServer
 ) -> list:
-
     """
-    [REACT AGENT LOOP]
+    REACT AGENT LOOP
 
-    Thực thi vòng lặp:
+    Luồng xử lý:
 
     Thought
         ↓
@@ -212,33 +237,48 @@ def run_react_agent(
         ↓
     Thought
         ↓
-    ...
+    Action
+        ↓
+    Observation
         ↓
     Final Answer
 
-    Observation từ Tool sẽ được đưa trở lại cho LLM
-    ở iteration tiếp theo.
+    Agent có thể sử dụng:
 
-    Trả về danh sách Waterfall Trace Logs.
+    1. loan_information_lookup
+       Tra cứu thông tin sản phẩm vay.
+
+    2. loan_consultation_booking
+       Đặt lịch tư vấn với chuyên viên tín dụng.
+
+    Observation sau mỗi Tool Call sẽ được đưa trở lại LLM
+    để quyết định bước tiếp theo.
+
+    Trả về:
+        list Waterfall Trace Logs.
     """
 
     print(
-        f"\n🤖 [REACT AGENT] "
+        f"\n🤖 [BANKING REACT AGENT] "
         f"Câu hỏi: {user_query}"
     )
 
     step = 0
+
     trace_logs = []
 
-    # Danh sách Tool schemas do MCP Server công bố
+    # Danh sách Tool schemas do MCP Server cung cấp
     tools_list = mcp_server.list_tools()
 
-    # Context ban đầu là câu hỏi gốc
+    # Context ban đầu
     current_context = user_query
 
-    # ======================================================================
+    # Lưu lịch sử các tool đã gọi
+    executed_actions = []
+
+    # ==========================================================================
     # REACT LOOP
-    # ======================================================================
+    # ==========================================================================
 
     while step < MAX_ITERATIONS:
 
@@ -251,9 +291,9 @@ def run_react_agent(
             f"(Step {step}/{MAX_ITERATIONS}) ---"
         )
 
-        # ------------------------------------------------------------------
+        # ======================================================================
         # GỌI LLM VỚI NATIVE TOOL CALLING
-        # ------------------------------------------------------------------
+        # ======================================================================
 
         llm_response = provider.generate_with_tools(
             current_context,
@@ -276,12 +316,16 @@ def run_react_agent(
             f"{thought}"
         )
 
-        # ==================================================================
-        # CASE 1:
-        # LLM TRẢ VỀ TEXT -> FINAL ANSWER
-        # ==================================================================
+        response_type = llm_response.get(
+            "type"
+        )
 
-        if llm_response.get("type") == "text":
+        # ======================================================================
+        # CASE 1:
+        # LLM TRẢ FINAL ANSWER
+        # ======================================================================
+
+        if response_type == "text":
 
             final_content = llm_response.get(
                 "content",
@@ -304,12 +348,12 @@ def run_react_agent(
 
             break
 
-        # ==================================================================
+        # ======================================================================
         # CASE 2:
         # LLM YÊU CẦU GỌI TOOL
-        # ==================================================================
+        # ======================================================================
 
-        elif llm_response.get("type") == "tool_call":
+        elif response_type == "tool_call":
 
             tool_name = llm_response.get(
                 "tool_name"
@@ -325,9 +369,47 @@ def run_react_agent(
                 f"{tool_name}({arguments})"
             )
 
-            # --------------------------------------------------------------
+            # ------------------------------------------------------------------
+            # CHỐNG LẶP CÙNG TOOL CALL
+            # ------------------------------------------------------------------
+
+            action_signature = json.dumps(
+                {
+                    "tool_name": tool_name,
+                    "arguments": arguments
+                },
+                ensure_ascii=False,
+                sort_keys=True
+            )
+
+            if action_signature in executed_actions:
+
+                print(
+                    "⚠️ [REACT WARNING]: "
+                    "Agent đang cố gọi lại cùng một Tool "
+                    "với cùng tham số."
+                )
+
+                current_context += (
+                    "\n\n"
+                    "LƯU Ý HỆ THỐNG:\n"
+                    "Bạn đã gọi Tool này với cùng tham số "
+                    "và đã nhận Observation trước đó. "
+                    "KHÔNG gọi lại cùng Tool. "
+                    "Hãy sử dụng Observation đã có để "
+                    "trả Final Answer hoặc quyết định "
+                    "một hành động khác."
+                )
+
+                continue
+
+            executed_actions.append(
+                action_signature
+            )
+
+            # ------------------------------------------------------------------
             # THỰC THI TOOL QUA MCP SERVER
-            # --------------------------------------------------------------
+            # ------------------------------------------------------------------
 
             mcp_result = mcp_server.call_tool(
                 tool_name,
@@ -349,9 +431,9 @@ def run_react_agent(
                 f"{obs_str}"
             )
 
-            # --------------------------------------------------------------
+            # ------------------------------------------------------------------
             # GHI WATERFALL TRACE
-            # --------------------------------------------------------------
+            # ------------------------------------------------------------------
 
             trace_logs.append({
                 "step": step,
@@ -363,16 +445,16 @@ def run_react_agent(
                 "latency_ms": latency_ms
             })
 
-            # --------------------------------------------------------------
+            # ------------------------------------------------------------------
             # ĐƯA OBSERVATION TRỞ LẠI CHO LLM
             #
-            # Quan trọng:
-            # KHÔNG break ở đây.
+            # KHÔNG BREAK.
             #
-            # Agent phải đọc Observation và quyết định:
-            # - gọi Tool tiếp theo
+            # LLM phải quyết định:
+            #
+            # - gọi tool tiếp theo
             # - hoặc trả Final Answer
-            # --------------------------------------------------------------
+            # ------------------------------------------------------------------
 
             current_context += (
                 "\n\n"
@@ -383,14 +465,23 @@ def run_react_agent(
                 f"Observation: {obs_str}\n"
                 "=========================\n\n"
                 "Hãy tiếp tục xử lý yêu cầu ban đầu dựa trên "
-                "Observation vừa nhận được. "
-                "Nếu cần sử dụng thêm công cụ thì hãy gọi công cụ phù hợp. "
-                "Nếu đã đủ thông tin thì hãy trả lời người dùng."
+                "Observation vừa nhận được.\n"
+                "\n"
+                "QUY TẮC:\n"
+                "- Không gọi lại cùng Tool với cùng tham số nếu "
+                "Observation đã có.\n"
+                "- Nếu cần một Tool khác, hãy gọi Tool phù hợp.\n"
+                "- Nếu Observation trả SUCCESS và đã đủ dữ liệu, "
+                "hãy trả Final Answer.\n"
+                "- Nếu Observation trả NOT_FOUND, hãy thông báo "
+                "không tìm thấy dữ liệu và không bịa thông tin.\n"
+                "- Nếu yêu cầu là đa bước và bước tiếp theo phụ thuộc "
+                "Observation này, hãy thực hiện bước tiếp theo."
             )
 
-        # ==================================================================
+        # ======================================================================
         # RESPONSE TYPE KHÔNG HỢP LỆ
-        # ==================================================================
+        # ======================================================================
 
         else:
 
@@ -404,7 +495,9 @@ def run_react_agent(
                 "query": user_query,
                 "action_type": "ERROR",
                 "thought": thought,
-                "output": "Invalid LLM response type",
+                "output": (
+                    "Invalid LLM response type"
+                ),
                 "latency_ms": latency_ms
             })
 
@@ -457,7 +550,7 @@ if __name__ == "__main__":
     )
 
     print(
-        "🏦 AI LOAN ADVISORY AGENT"
+        "🏦 BANKING LOAN ADVISORY AGENT"
     )
 
     print(
@@ -468,20 +561,17 @@ if __name__ == "__main__":
         "=========================================================="
     )
 
-    # --------------------------------------------------------------------------
+    # ==========================================================================
     # KHỞI TẠO LLM PROVIDER
-    # --------------------------------------------------------------------------
+    # ==========================================================================
 
     provider = get_llm_provider()
 
-    # --------------------------------------------------------------------------
-    # KHỞI TẠO MCP SERVER
-    #
-    # Nếu bạn chưa đổi tên class MCPAcademicServer
-    # thì cứ giữ nguyên dòng này.
-    # --------------------------------------------------------------------------
+    # ==========================================================================
+    # KHỞI TẠO MCP BANKING SERVER
+    # ==========================================================================
 
-    mcp_server = MCPAcademicServer()
+    mcp_server = MCPBankingServer()
 
     print(
         f"🔌 LLM Provider: "
@@ -493,9 +583,9 @@ if __name__ == "__main__":
         f"{mcp_server.server_name}\n"
     )
 
-    # --------------------------------------------------------------------------
+    # ==========================================================================
     # LOAD TEST CASES
-    # --------------------------------------------------------------------------
+    # ==========================================================================
 
     tests = load_test_cases()
 
@@ -512,58 +602,96 @@ if __name__ == "__main__":
 
         print(
             "🎮 [INTERACTIVE MODE] "
-            "Trò chuyện trực tiếp với Loan Advisory ReAct Agent:"
+            "Trò chuyện trực tiếp với "
+            "Banking Loan ReAct Agent:"
         )
 
         print(
             "\n💡 Gợi ý câu hỏi thử nghiệm:"
         )
 
+        # ----------------------------------------------------------------------
+        # EXAMPLE 1
+        # ----------------------------------------------------------------------
+
         print(
-            "   1. Tra cứu khoản vay:"
+            "\n1️⃣ Câu hỏi chung:"
         )
 
         print(
-            "      'Tôi muốn vay 500 triệu mua ô tô. "
-            "Có sản phẩm nào phù hợp?'"
+            "   'Ngân hàng hiện có những loại "
+            "khoản vay phổ biến nào?'"
+        )
+
+        # ----------------------------------------------------------------------
+        # EXAMPLE 2
+        # ----------------------------------------------------------------------
+
+        print(
+            "\n2️⃣ Tra cứu khoản vay:"
         )
 
         print(
-            "\n   2. Đặt lịch tư vấn:"
+            "   'Tôi muốn vay 500 triệu mua ô tô, "
+            "thu nhập 25 triệu/tháng. "
+            "Hãy tra cứu sản phẩm phù hợp.'"
+        )
+
+        # ----------------------------------------------------------------------
+        # EXAMPLE 3
+        # ----------------------------------------------------------------------
+
+        print(
+            "\n3️⃣ Đặt lịch tư vấn:"
         )
 
         print(
-            "      'Tôi là Nguyễn Văn An, "
+            "   'Tôi là Nguyễn Văn An, "
             "số điện thoại 0901234567. "
-            "Đặt lịch tư vấn vay mua ô tô "
+            "Hãy đặt lịch tư vấn vay mua ô tô "
             "lúc 14:00 ngày 20/09/2026.'"
         )
 
+        # ----------------------------------------------------------------------
+        # EXAMPLE 4
+        # ----------------------------------------------------------------------
+
         print(
-            "\n   3. ReAct đa bước:"
+            "\n4️⃣ ReAct đa bước:"
         )
 
         print(
-            "      'Tôi muốn vay 500 triệu mua ô tô. "
+            "   'Tôi muốn vay 500 triệu mua ô tô, "
+            "thu nhập 25 triệu/tháng. "
             "Hãy tìm sản phẩm phù hợp. "
-            "Nếu có sản phẩm phù hợp thì đặt lịch tư vấn "
-            "cho tôi lúc 15:00 ngày 21/09/2026. "
-            "Tên tôi là Nguyễn Văn An, "
+            "Nếu đáp ứng điều kiện sơ bộ thì "
+            "đặt lịch tư vấn cho tôi lúc "
+            "15:00 ngày 21/09/2026. "
+            "Tôi tên Nguyễn Văn An, "
             "số điện thoại 0901234567.'"
         )
 
+        # ----------------------------------------------------------------------
+        # EXAMPLE 5
+        # ----------------------------------------------------------------------
+
         print(
-            "\n   4. Edge case:"
+            "\n5️⃣ Edge Case:"
         )
 
         print(
-            "      'Hãy tra cứu sản phẩm vay "
-            "có mã LOAN-999999.'"
+            "   'Hãy tra cứu sản phẩm vay "
+            "loại education_loan.'"
         )
 
         print(
-            "\n   - Gõ 'exit' hoặc 'quit' để kết thúc.\n"
+            "\nGõ 'exit' hoặc 'quit' "
+            "để kết thúc.\n"
         )
+
+        # ----------------------------------------------------------------------
+        # INTERACTIVE LOOP
+        # ----------------------------------------------------------------------
 
         while True:
 
@@ -620,6 +748,7 @@ if __name__ == "__main__":
 
         completed_count = 0
         todo_count = 0
+
         all_traces = []
 
         for tc in tests:
@@ -631,7 +760,8 @@ if __name__ == "__main__":
             print(
                 f"🧪 [{tc['id']}] "
                 f"Loại test: {tc['type']} "
-                f"(Độ phức tạp: {tc['complexity']})"
+                f"(Độ phức tạp: "
+                f"{tc['complexity']})"
             )
 
             print(
@@ -644,12 +774,17 @@ if __name__ == "__main__":
                 ""
             )
 
+            # ------------------------------------------------------------------
+            # TEST CASE CHƯA HOÀN THIỆN
+            # ------------------------------------------------------------------
+
             if question.strip().startswith(
                 "TODO"
             ):
 
                 print(
-                    "⏸️ [CHƯA KÍCH HOẠT - ĐANG LÀ TODO]:"
+                    "⏸️ [CHƯA KÍCH HOẠT - "
+                    "ĐANG LÀ TODO]:"
                 )
 
                 print(
@@ -665,6 +800,10 @@ if __name__ == "__main__":
 
                 todo_count += 1
 
+            # ------------------------------------------------------------------
+            # CHẠY TEST CASE
+            # ------------------------------------------------------------------
+
             else:
 
                 logs = run_react_agent(
@@ -679,6 +818,10 @@ if __name__ == "__main__":
 
                 completed_count += 1
 
+        # ----------------------------------------------------------------------
+        # KẾT QUẢ
+        # ----------------------------------------------------------------------
+
         print(
             "\n=================================================="
         )
@@ -686,9 +829,14 @@ if __name__ == "__main__":
         print(
             f"📊 [KẾT QUẢ TEST SUITE]: "
             f"Đã thực thi "
-            f"{completed_count}/{len(tests)} Test Cases "
-            f"| {todo_count} Test Cases còn TODO"
+            f"{completed_count}/{len(tests)} "
+            f"Test Cases | "
+            f"{todo_count} Test Cases còn TODO"
         )
+
+        # ----------------------------------------------------------------------
+        # SAVE TRACE
+        # ----------------------------------------------------------------------
 
         if all_traces:
 
@@ -715,19 +863,19 @@ if __name__ == "__main__":
         )
 
         print(
-            "  1. Chat trực tiếp:"
+            "\n1. Chat trực tiếp:"
         )
 
         print(
-            "     python src/app.py --interactive"
+            "   python src/app.py --interactive"
         )
 
         print(
-            "\n  2. Chạy toàn bộ Test Cases:"
+            "\n2. Chạy toàn bộ Test Cases:"
         )
 
         print(
-            "     python src/app.py --all\n"
+            "   python src/app.py --all\n"
         )
 
         # ----------------------------------------------------------------------
@@ -742,7 +890,8 @@ if __name__ == "__main__":
             )
 
             print(
-                "--- 🏁 DEMO CHẠY THỬ TEST CASE MẪU ---"
+                "--- 🏁 DEMO CHẠY THỬ "
+                "TEST CASE MẪU ---"
             )
 
             if sample_query.strip().startswith(
@@ -750,7 +899,8 @@ if __name__ == "__main__":
             ):
 
                 print(
-                    "⚠️ Test Case mẫu vẫn đang là TODO."
+                    "⚠️ Test Case mẫu "
+                    "vẫn đang là TODO."
                 )
 
                 print(
