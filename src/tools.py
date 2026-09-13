@@ -11,41 +11,45 @@ from typing import Dict, Any
 # ==============================================================================
 
 TOOLS_SCHEMA = [
-    # Tool 1: Đã được định nghĩa mẫu sẵn cho Học viên tham khảo
     {
         "name": "academic_query",
-        "description": "Tra cứu hồ sơ và thông tin học vụ của sinh viên VinUni bằng mã sinh viên.",
+        "description": (
+            "Tra cứu thông tin học vụ của sinh viên VinUni bằng mã sinh viên, "
+            "bao gồm họ tên, lớp, GPA, email, trạng thái học tập và tên cố vấn."
+        ),
         "parameters": {
             "type": "object",
             "properties": {
                 "student_id": {
                     "type": "string",
-                    "description": "Mã sinh viên cần tra cứu (ví dụ: 'SV2026001')"
+                    "description": "Mã sinh viên cần tra cứu (ví dụ: 'SV2026001')."
                 }
             },
             "required": ["student_id"]
         }
     },
-    
-    # --------------------------------------------------------------------------
-    # TODO 1.2: HỌC VIÊN HOÀN THIỆN TOOL SCHEMA CHO 'schedule_appointment'
-    # 🎯 YÊU CẦU THIẾT KẾ SCHEMA (JSON SCHEMA STANDARD):
-    # 1. Tool dùng để đặt lịch hẹn tư vấn học vụ với Cố vấn học tập VinUni.
-    # 2. Thiết kế các tham số (properties) để LLM trích xuất:
-    #    - student_id (string): Mã sinh viên cần đặt lịch (ví dụ: 'SV2026001')
-    #    - datetime_str (string): Thời gian hẹn (ví dụ: '14:00 15/09/2026')
-    #    - advisor_name (string): Tên cố vấn học tập
-    # 3. Khai báo danh sách các trường bắt buộc (required).
-    # --------------------------------------------------------------------------
     {
         "name": "schedule_appointment",
-        "description": "Đặt lịch hẹn tư vấn học vụ với Cố vấn học tập VinUni.",
+        "description": (
+            "Đặt lịch hẹn tư vấn học vụ với cố vấn học tập của sinh viên VinUni."
+        ),
         "parameters": {
             "type": "object",
             "properties": {
-                # TODO 1.2: Khai báo các thuộc tính tham số cho Tool tại đây...
+                "student_id": {
+                    "type": "string",
+                    "description": "Mã sinh viên cần đặt lịch (ví dụ: 'SV2026001')."
+                },
+                "datetime_str": {
+                    "type": "string",
+                    "description": "Thời gian hẹn, ví dụ: '14:00 15/09/2026'."
+                },
+                "advisor_name": {
+                    "type": "string",
+                    "description": "Tên cố vấn học tập của sinh viên."
+                }
             },
-            "required": [] # TODO 1.2: Khai báo danh sách các trường bắt buộc tại đây...
+            "required": ["student_id", "datetime_str", "advisor_name"]
         }
     }
 ]
@@ -54,51 +58,66 @@ TOOLS_SCHEMA = [
 # 2. MÔ PHỎNG DỮ LIỆU & HÀM THỰC THI TOOL (EXECUTION LAYER)
 # ==============================================================================
 
-MOCK_DATABASE = {
+ACADEMIC_DATABASE = {
     "SV2026001": {
-        "full_name": "Nguyễn Văn An",
-        "class": "AI-K4",
-        "gpa": 3.85,
-        "email": "an.nv@vinuni.edu.vn",
+        "student_id": "SV2026001",
+        "full_name": "Nguyễn Thị Lê Na",
+        "class": "K4B-2A202602501",
+        "gpa": 3.68,
+        "email": "le.na@vinuni.edu.vn",
         "status": "Đang học",
         "advisor": "PGS.TS Nguyễn Văn A"
-    },
-    "SV2026002": {
-        "full_name": "Trần Thị Bình",
-        "class": "AI-K4",
-        "gpa": 3.60,
-        "email": "binh.tt@vinuni.edu.vn",
-        "status": "Đang học",
-        "advisor": "TS. Lê Thị B"
     }
 }
 
 
 def execute_academic_query(student_id: str) -> str:
-    """Thực thi tra cứu học vụ theo mã sinh viên"""
-    student = MOCK_DATABASE.get(student_id.strip().upper())
-    if student:
-        return json.dumps({
-            "status": "SUCCESS",
-            "student_id": student_id,
-            "data": student
-        }, ensure_ascii=False)
-    else:
+    """Thực thi tra cứu thông tin học vụ của sinh viên"""
+
+    normalized_student_id = student_id.strip().upper()
+    student = ACADEMIC_DATABASE.get(normalized_student_id)
+
+    if not student:
         return json.dumps({
             "status": "NOT_FOUND",
-            "message": f"Không tìm thấy dữ liệu sinh viên có mã '{student_id}'"
+            "message": f"Không tìm thấy thông tin sinh viên với mã '{student_id}'."
         }, ensure_ascii=False)
 
-
-def execute_schedule_appointment(student_id: str, datetime_str: str, advisor_name: str = "PGS.TS Nguyễn Văn A") -> str:
-    """Thực thi đặt lịch hẹn tư vấn học vụ"""
     return json.dumps({
         "status": "SUCCESS",
-        "booking_id": f"BK-{student_id}-99",
-        "student_id": student_id,
+        "student_id": normalized_student_id,
+        "data": student
+    }, ensure_ascii=False)
+
+
+def execute_schedule_appointment(
+    student_id: str,
+    datetime_str: str,
+    advisor_name: str
+) -> str:
+    """Thực thi đặt lịch hẹn tư vấn học vụ với cố vấn"""
+
+    normalized_student_id = student_id.strip().upper()
+    student = ACADEMIC_DATABASE.get(normalized_student_id)
+
+    if not student:
+        return json.dumps({
+            "status": "NOT_FOUND",
+            "message": f"Không tìm thấy sinh viên '{student_id}' để đặt lịch."
+        }, ensure_ascii=False)
+
+    booking_id = f"APT-{normalized_student_id}-{datetime_str.replace(' ', '').replace('/', '')}"
+
+    return json.dumps({
+        "status": "SUCCESS",
+        "booking_id": booking_id,
+        "student_id": normalized_student_id,
         "datetime": datetime_str,
-        "advisor": advisor_name,
-        "message": f"Đặt lịch thành công cho sinh viên {student_id} với {advisor_name} vào lúc {datetime_str}."
+        "advisor_name": advisor_name,
+        "message": (
+            f"Đặt lịch thành công cho sinh viên {normalized_student_id} "
+            f"với cố vấn {advisor_name} vào lúc {datetime_str}."
+        )
     }, ensure_ascii=False)
 
 
@@ -108,11 +127,28 @@ TOOL_ROUTER = {
     "schedule_appointment": execute_schedule_appointment
 }
 
+
 def dispatch_tool_call(tool_name: str, arguments: Dict[str, Any]) -> str:
     """Hàm trung chuyển thực thi tool"""
+
     if tool_name in TOOL_ROUTER:
-        try:
-            return TOOL_ROUTER[tool_name](**arguments)
-        except Exception as e:
-            return json.dumps({"status": "EXECUTION_ERROR", "error": str(e)}, ensure_ascii=False)
-    return json.dumps({"status": "UNKNOWN_TOOL", "error": f"Tool '{tool_name}' không tồn tại!"}, ensure_ascii=False)
+        return TOOL_ROUTER[tool_name](**arguments)
+
+    return json.dumps({
+        "status": "UNKNOWN_TOOL",
+        "error": f"Tool '{tool_name}' không tồn tại!"
+    }, ensure_ascii=False)
+
+# if __name__ == "__main__":
+#     print("=== TEST LOAN INFORMATION LOOKUP ===")
+
+#     result = dispatch_tool_call(
+#         "loan_information_lookup",
+#         {
+#             "loan_type": "car_loan",
+#             "loan_amount": 500000000,
+#             "monthly_income": 25000000
+#         }
+#     )
+
+#     print(result)
