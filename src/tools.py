@@ -11,45 +11,77 @@ from typing import Dict, Any
 # ==============================================================================
 
 TOOLS_SCHEMA = [
+    # Tool 1: Tra cứu thông tin sản phẩm vay
     {
-        "name": "academic_query",
+        "name": "loan_information_lookup",
         "description": (
-            "Tra cứu thông tin học vụ của sinh viên VinUni bằng mã sinh viên, "
-            "bao gồm họ tên, lớp, GPA, email, trạng thái học tập và tên cố vấn."
+            "Tra cứu thông tin sản phẩm vay của ngân hàng dựa trên nhu cầu "
+            "của khách hàng như loại khoản vay, số tiền vay và thu nhập hàng tháng."
         ),
         "parameters": {
             "type": "object",
             "properties": {
-                "student_id": {
+                "loan_type": {
                     "type": "string",
-                    "description": "Mã sinh viên cần tra cứu (ví dụ: 'SV2026001')."
+                    "description": (
+                        "Loại khoản vay khách hàng quan tâm, "
+                        "ví dụ: 'car_loan', 'home_loan', 'personal_loan'."
+                    )
+                },
+                "loan_amount": {
+                    "type": "number",
+                    "description": "Số tiền khách hàng muốn vay, đơn vị VND."
+                },
+                "monthly_income": {
+                    "type": "number",
+                    "description": "Thu nhập hàng tháng của khách hàng, đơn vị VND."
                 }
             },
-            "required": ["student_id"]
+            "required": ["loan_type"]
         }
     },
+
+    # Tool 2: Đặt lịch tư vấn với chuyên viên tín dụng
     {
-        "name": "schedule_appointment",
+        "name": "loan_consultation_booking",
         "description": (
-            "Đặt lịch hẹn tư vấn học vụ với cố vấn học tập của sinh viên VinUni."
+            "Đặt lịch hẹn tư vấn khoản vay với chuyên viên tín dụng của ngân hàng."
         ),
         "parameters": {
             "type": "object",
             "properties": {
-                "student_id": {
+                "customer_name": {
                     "type": "string",
-                    "description": "Mã sinh viên cần đặt lịch (ví dụ: 'SV2026001')."
+                    "description": "Họ và tên khách hàng."
+                },
+                "phone_number": {
+                    "type": "string",
+                    "description": (
+                        "Số điện thoại của khách hàng, "
+                        "ví dụ: '0901234567'."
+                    )
                 },
                 "datetime_str": {
                     "type": "string",
-                    "description": "Thời gian hẹn, ví dụ: '14:00 15/09/2026'."
+                    "description": (
+                        "Thời gian khách hàng muốn đặt lịch tư vấn, "
+                        "ví dụ: '14:00 20/09/2026'."
+                    )
                 },
-                "advisor_name": {
+                "loan_type": {
                     "type": "string",
-                    "description": "Tên cố vấn học tập của sinh viên."
+                    "description": (
+                        "Loại khoản vay cần tư vấn, "
+                        "ví dụ: 'car_loan', 'home_loan', 'personal_loan'."
+                    )
                 }
             },
-            "required": ["student_id", "datetime_str", "advisor_name"]
+            "required": [
+                "customer_name",
+                "phone_number",
+                "datetime_str",
+                "loan_type"
+            ]
         }
     }
 ]
@@ -58,97 +90,129 @@ TOOLS_SCHEMA = [
 # 2. MÔ PHỎNG DỮ LIỆU & HÀM THỰC THI TOOL (EXECUTION LAYER)
 # ==============================================================================
 
-ACADEMIC_DATABASE = {
-    "SV2026001": {
-        "student_id": "SV2026001",
-        "full_name": "Nguyễn Thị Lê Na",
-        "class": "K4B-2A202602501",
-        "gpa": 3.68,
-        "email": "le.na@vinuni.edu.vn",
-        "status": "Đang học",
-        "advisor": "PGS.TS Nguyễn Văn A"
+MOCK_DATABASE = {
+    "car_loan": {
+        "product_name": "Vay mua ô tô cá nhân",
+        "interest_rate": "8.5%/năm",
+        "max_loan_amount": 2000000000,
+        "max_term_months": 84,
+        "min_monthly_income": 15000000,
+        "required_documents": [
+            "CCCD",
+            "Chứng minh thu nhập",
+            "Hợp đồng mua bán xe"
+        ]
+    },
+    "home_loan": {
+        "product_name": "Vay mua nhà",
+        "interest_rate": "7.8%/năm",
+        "max_loan_amount": 5000000000,
+        "max_term_months": 300,
+        "min_monthly_income": 20000000,
+        "required_documents": [
+            "CCCD",
+            "Chứng minh thu nhập",
+            "Hợp đồng mua bán nhà",
+            "Hồ sơ tài sản bảo đảm"
+        ]
+    },
+    "personal_loan": {
+        "product_name": "Vay tiêu dùng tín chấp",
+        "interest_rate": "12.0%/năm",
+        "max_loan_amount": 500000000,
+        "max_term_months": 60,
+        "min_monthly_income": 10000000,
+        "required_documents": [
+            "CCCD",
+            "Chứng minh thu nhập"
+        ]
     }
 }
 
 
-def execute_academic_query(student_id: str) -> str:
-    """Thực thi tra cứu thông tin học vụ của sinh viên"""
-
-    normalized_student_id = student_id.strip().upper()
-    student = ACADEMIC_DATABASE.get(normalized_student_id)
-
-    if not student:
-        return json.dumps({
-            "status": "NOT_FOUND",
-            "message": f"Không tìm thấy thông tin sinh viên với mã '{student_id}'."
-        }, ensure_ascii=False)
-
-    return json.dumps({
-        "status": "SUCCESS",
-        "student_id": normalized_student_id,
-        "data": student
-    }, ensure_ascii=False)
-
-
-def execute_schedule_appointment(
-    student_id: str,
-    datetime_str: str,
-    advisor_name: str
+def execute_loan_information_lookup(
+    loan_type: str,
+    loan_amount: float = None,
+    monthly_income: float = None
 ) -> str:
-    """Thực thi đặt lịch hẹn tư vấn học vụ với cố vấn"""
+    """Thực thi tra cứu thông tin sản phẩm vay"""
 
-    normalized_student_id = student_id.strip().upper()
-    student = ACADEMIC_DATABASE.get(normalized_student_id)
+    normalized_loan_type = loan_type.strip().lower()
+    loan = MOCK_DATABASE.get(normalized_loan_type)
 
-    if not student:
+    if not loan:
         return json.dumps({
             "status": "NOT_FOUND",
-            "message": f"Không tìm thấy sinh viên '{student_id}' để đặt lịch."
+            "message": f"Không tìm thấy sản phẩm vay loại '{loan_type}'."
         }, ensure_ascii=False)
 
-    booking_id = f"APT-{normalized_student_id}-{datetime_str.replace(' ', '').replace('/', '')}"
+    result = {
+        "status": "SUCCESS",
+        "loan_type": normalized_loan_type,
+        "data": loan
+    }
+
+    # Đánh giá sơ bộ nếu khách hàng cung cấp thêm thông tin
+    if loan_amount is not None:
+        result["loan_amount_check"] = (
+            "ELIGIBLE"
+            if loan_amount <= loan["max_loan_amount"]
+            else "EXCEEDS_MAX_AMOUNT"
+        )
+
+    if monthly_income is not None:
+        result["income_check"] = (
+            "ELIGIBLE"
+            if monthly_income >= loan["min_monthly_income"]
+            else "BELOW_MINIMUM_INCOME"
+        )
+
+    return json.dumps(result, ensure_ascii=False)
+
+
+def execute_loan_consultation_booking(
+    customer_name: str,
+    phone_number: str,
+    datetime_str: str,
+    loan_type: str
+) -> str:
+    """Thực thi đặt lịch tư vấn khoản vay với chuyên viên ngân hàng"""
+
+    booking_id = f"LOAN-BK-{phone_number[-4:]}-99"
 
     return json.dumps({
         "status": "SUCCESS",
         "booking_id": booking_id,
-        "student_id": normalized_student_id,
+        "customer_name": customer_name,
+        "phone_number": phone_number,
+        "loan_type": loan_type,
         "datetime": datetime_str,
-        "advisor_name": advisor_name,
+        "advisor": "Chuyên viên tín dụng 01",
         "message": (
-            f"Đặt lịch thành công cho sinh viên {normalized_student_id} "
-            f"với cố vấn {advisor_name} vào lúc {datetime_str}."
+            f"Đặt lịch thành công cho khách hàng {customer_name} "
+            f"tư vấn {loan_type} vào lúc {datetime_str}."
         )
     }, ensure_ascii=False)
 
 
 # Router gọi tool thực tế
 TOOL_ROUTER = {
-    "academic_query": execute_academic_query,
-    "schedule_appointment": execute_schedule_appointment
+    "loan_information_lookup": execute_loan_information_lookup,
+    "loan_consultation_booking": execute_loan_consultation_booking
 }
 
 
 def dispatch_tool_call(tool_name: str, arguments: Dict[str, Any]) -> str:
     """Hàm trung chuyển thực thi tool"""
 
-    if tool_name in TOOL_ROUTER:
-        return TOOL_ROUTER[tool_name](**arguments)
+    # TODO 2.1 - Điều tuyến Tool Call
+    if tool_name == "loan_information_lookup":
+        return execute_loan_information_lookup(**arguments)
+
+    elif tool_name == "loan_consultation_booking":
+        return execute_loan_consultation_booking(**arguments)
 
     return json.dumps({
         "status": "UNKNOWN_TOOL",
         "error": f"Tool '{tool_name}' không tồn tại!"
     }, ensure_ascii=False)
-
-# if __name__ == "__main__":
-#     print("=== TEST LOAN INFORMATION LOOKUP ===")
-
-#     result = dispatch_tool_call(
-#         "loan_information_lookup",
-#         {
-#             "loan_type": "car_loan",
-#             "loan_amount": 500000000,
-#             "monthly_income": 25000000
-#         }
-#     )
-
-#     print(result)
