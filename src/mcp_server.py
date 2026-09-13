@@ -76,25 +76,65 @@ class MCPAcademicServer:
 
 if __name__ == "__main__":
     print("==========================================================")
-    print("🔌 KIỂM THỬ ĐỘC LẬP MCP SERVER (vinuni-academic-mcp-server)")
+    print("🔌 KIỂM THỬ ĐỘC LẬP MCP SERVER (banking-loan-mcp-server)")
     print("==========================================================")
-    
-    server = MCPAcademicServer()
-    tools = server.list_tools()
-    print(f"✅ Khởi tạo thành công MCP Server: {server.server_name} (Version: {server.version})")
-    print(f"📦 Số lượng Tools công bố: {len(tools)}")
-    
-    # Kiểm tra trạng thái TODO 1.2 (Tool Schema)
-    sched_tool = next((t for t in tools if t.get("name") == "schedule_appointment"), None)
-    if sched_tool and not sched_tool.get("parameters", {}).get("properties"):
-        print("⏳ [TODO 1.2]: Tool 'schedule_appointment' chưa được định nghĩa properties trong 'src/tools.py'.")
-    else:
-        print("✅ [TODO 1.2]: Tool 'schedule_appointment' đã có schema đầy đủ.")
 
-    # Kiểm tra trạng thái TODO 2.1 (call_tool)
-    test_result = server.call_tool("academic_query", {"student_id": "SV2026001"})
-    if not test_result:
-        print("⏳ [TODO 2.1]: Hàm call_tool() đang trả về rỗng. Học viên hãy hoàn thiện TODO 2.1 trong 'src/mcp_server.py'!")
+    server = MCPAcademicServer()
+
+    tools = server.list_tools()
+
+    print(
+        f"✅ Khởi tạo thành công MCP Server: "
+        f"{server.server_name} (Version: {server.version})"
+    )
+
+    print(f"📦 Số lượng Tools công bố: {len(tools)}")
+
+    # ==========================================================
+    # TEST TOOL SCHEMA
+    # ==========================================================
+
+    booking_tool = next(
+        (
+            t for t in tools
+            if t.get("name") == "loan_consultation_booking"
+        ),
+        None
+    )
+
+    if (
+        booking_tool
+        and booking_tool.get("parameters", {}).get("properties")
+    ):
+        print(
+            "✅ [TODO 1.2]: Tool 'loan_consultation_booking' "
+            "đã có schema đầy đủ."
+        )
     else:
-        print(f"✅ [TODO 2.1]: Test dispatch tool 'academic_query' thành công:")
-        print(f"   Phản hồi JSON-RPC: {json.dumps(test_result, ensure_ascii=False)}")
+        print(
+            "⏳ [TODO 1.2]: Tool 'loan_consultation_booking' "
+            "chưa được định nghĩa properties."
+        )
+
+    # ==========================================================
+    # TEST TOOL 1: LOAN INFORMATION LOOKUP
+    # ==========================================================
+
+    test_result = server.call_tool(
+        "loan_information_lookup",
+        {
+            "loan_type": "car_loan",
+            "loan_amount": 500000000,
+            "monthly_income": 25000000
+        }
+    )
+
+    print(
+        "✅ [TODO 2.1]: Test dispatch tool "
+        "'loan_information_lookup' thành công:"
+    )
+
+    print(
+        f"   Phản hồi JSON-RPC: "
+        f"{json.dumps(test_result, ensure_ascii=False, indent=2)}"
+    )
