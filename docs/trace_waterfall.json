@@ -3,9 +3,9 @@
     "step": 1,
     "query": "Chào bạn, bạn có thể giới thiệu quy chế học vụ cơ bản của Đại học VinUni không?",
     "action_type": "FINAL_ANSWER",
-    "thought": "Câu hỏi chung về quy chế học vụ, trả lời trực tiếp không cần gọi Tool.",
-    "output": "[Mock Agent Response]: Xin chào! Quy chế học vụ VinUni yêu cầu sinh viên tích lũy tối thiểu 120 tín chỉ và duy trì GPA trên 2.0 để tốt nghiệp.",
-    "latency_ms": 2845.93
+    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Chào bạn, tôi là Trợ lý Tác tử Học vụ Thông minh của Đại học VinUni. Rất vui được hỗ trợ bạn.\n\nVề quy chế học vụ cơ bản của Đại học VinUni, tôi có thể cung cấp thông tin chung như sau:\n\n*   **Hệ thống tín chỉ:** VinUni áp dụng hệ thống tín chỉ, sinh viên cần tích lũy đủ số tín chỉ theo yêu cầu của từng ngành để tốt nghiệp.\n*   **Điểm trung bình tích lũy (GPA):** GPA là một chỉ số quan trọng đánh giá kết quả học tập của sinh viên. Sinh viên cần duy trì GPA tối thiểu theo quy định để tiếp tục học và tốt nghiệp.\n*   **Cố vấn học tập:** Mỗi sinh viên đều có một cố vấn học tập riêng để hỗ trợ trong quá trình học tập, định hướng nghề nghiệp và giải quyết các vấn đề liên quan đến học vụ.\n*   **Các quy định về tiến độ học tập:** Sinh viên cần hoàn thành các môn học theo đúng lộ trình và thời gian quy định.\n*   **Quy định về thi cử và đánh giá:** VinUni có các quy định rõ ràng về hình thức thi, cách tính điểm và các tiêu chí đánh giá kết quả học tập.\n\nĐể biết thông tin chi tiết và chính xác nhất về quy chế học vụ, tôi khuyên bạn nên tham khảo Cổng thông tin sinh viên của VinUni hoặc liên hệ trực tiếp với Phòng Đào tạo.\n\nBạn có câu hỏi nào khác không?",
+    "latency_ms": 4567.03
   },
   {
     "step": 1,
@@ -15,15 +15,114 @@
     "arguments": {
       "student_id": "SV2026001"
     },
-    "observation": {},
-    "latency_ms": 799.12
+    "observation": {
+      "status": "SUCCESS",
+      "student_id": "SV2026001",
+      "data": {
+        "student_id": "SV2026001",
+        "full_name": "Nguyễn Thị Lê Na",
+        "class": "K4B-2A202602501",
+        "gpa": 3.68,
+        "email": "le.na@vinuni.edu.vn",
+        "status": "Đang học",
+        "advisor": "PGS.TS Nguyễn Văn A"
+      }
+    },
+    "latency_ms": 2898.54
   },
   {
     "step": 2,
     "query": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
     "action_type": "FINAL_ANSWER",
     "thought": "Tổng hợp kết quả từ MCP Server thành công.",
-    "output": "Chưa thể trả lời chi tiết do chưa nhận được dữ liệu từ MCP Server (hãy hoàn thành TODO 2.1).",
+    "output": "Kết quả tra cứu cho sinh viên SV2026001 (Nguyễn Thị Lê Na): Lớp K4B-2A202602501, GPA: 3.68, Email: le.na@vinuni.edu.vn, Trạng thái: Đang học, Cố vấn: PGS.TS Nguyễn Văn A.",
+    "latency_ms": 10.0
+  },
+  {
+    "step": 1,
+    "query": "Đặt lịch hẹn tư vấn học vụ cho sinh viên SV2026001 vào 14:00 ngày 15/09/2026 với cố vấn PGS.TS Nguyễn Văn A.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "schedule_appointment",
+    "arguments": {
+      "student_id": "SV2026001",
+      "datetime_str": "14:00 15/09/2026",
+      "advisor_name": "PGS.TS Nguyễn Văn A"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "booking_id": "APT-SV2026001-14:0015092026",
+      "student_id": "SV2026001",
+      "datetime": "14:00 15/09/2026",
+      "advisor_name": "PGS.TS Nguyễn Văn A",
+      "message": "Đặt lịch thành công cho sinh viên SV2026001 với cố vấn PGS.TS Nguyễn Văn A vào lúc 14:00 15/09/2026."
+    },
+    "latency_ms": 1081.46
+  },
+  {
+    "step": 2,
+    "query": "Đặt lịch hẹn tư vấn học vụ cho sinh viên SV2026001 vào 14:00 ngày 15/09/2026 với cố vấn PGS.TS Nguyễn Văn A.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
+    "output": "Đặt lịch thành công cho sinh viên SV2026001 với cố vấn PGS.TS Nguyễn Văn A vào lúc 14:00 15/09/2026.",
+    "latency_ms": 10.0
+  },
+  {
+    "step": 1,
+    "query": "Hãy tra cứu thông tin học vụ của SV2026001 rồi đặt lịch hẹn tư vấn cho sinh viên này với cố vấn PGS.TS Nguyễn Văn A vào 14:00 ngày 15/09/2026.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "schedule_appointment",
+    "arguments": {
+      "student_id": "SV2026001",
+      "datetime_str": "14:00 15/09/2026",
+      "advisor_name": "PGS.TS Nguyễn Văn A"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "booking_id": "APT-SV2026001-14:0015092026",
+      "student_id": "SV2026001",
+      "datetime": "14:00 15/09/2026",
+      "advisor_name": "PGS.TS Nguyễn Văn A",
+      "message": "Đặt lịch thành công cho sinh viên SV2026001 với cố vấn PGS.TS Nguyễn Văn A vào lúc 14:00 15/09/2026."
+    },
+    "latency_ms": 952.83
+  },
+  {
+    "step": 2,
+    "query": "Hãy tra cứu thông tin học vụ của SV2026001 rồi đặt lịch hẹn tư vấn cho sinh viên này với cố vấn PGS.TS Nguyễn Văn A vào 14:00 ngày 15/09/2026.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
+    "output": "Đặt lịch thành công cho sinh viên SV2026001 với cố vấn PGS.TS Nguyễn Văn A vào lúc 14:00 15/09/2026.",
+    "latency_ms": 10.0
+  },
+  {
+    "step": 1,
+    "query": "Hãy tra cứu thông tin học vụ của sinh viên SV9999999.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "academic_query",
+    "arguments": {
+      "student_id": "SV2026001"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "student_id": "SV2026001",
+      "data": {
+        "student_id": "SV2026001",
+        "full_name": "Nguyễn Thị Lê Na",
+        "class": "K4B-2A202602501",
+        "gpa": 3.68,
+        "email": "le.na@vinuni.edu.vn",
+        "status": "Đang học",
+        "advisor": "PGS.TS Nguyễn Văn A"
+      }
+    },
+    "latency_ms": 1249.36
+  },
+  {
+    "step": 2,
+    "query": "Hãy tra cứu thông tin học vụ của sinh viên SV9999999.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
+    "output": "Kết quả tra cứu cho sinh viên SV2026001 (Nguyễn Thị Lê Na): Lớp K4B-2A202602501, GPA: 3.68, Email: le.na@vinuni.edu.vn, Trạng thái: Đang học, Cố vấn: PGS.TS Nguyễn Văn A.",
     "latency_ms": 10.0
   }
 ]
